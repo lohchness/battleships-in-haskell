@@ -35,11 +35,17 @@ The game finishes once the searcher guesses all three ship locations in a single
 # Guess Quality
 
 Feedback correctness score 1.0: Passed 200 of 200 tests
+
 Sample guess quality score 1.2: Guessed C3 F1 F3 in 5 guesses Run time = 1.212 seconds
+
 Guess test 1 quality score 0.857142857143: Guessed G3 D3 E1 in 7 guesses Run time = 0.572 seconds
+
 Guess test 2 quality score 0.857142857143: Guessed G3 A2 E1 in 7 guesses Run time = 2.66 seconds
+
 Guess test 3 quality score 1.2: Guessed G3 H3 H1 in 5 guesses Run time = 0.544 seconds
+
 Guess test 4 quality score 1.0: Guessed D1 D2 F3 in 6 guesses Run time = 0.564 seconds
+
 Guess test 5 quality score 1.2: Guessed A1 H2 E4 in 5 guesses Run time = 2.92 seconds
 
 Overall 94% - H1 for the project
