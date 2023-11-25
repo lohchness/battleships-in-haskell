@@ -30,7 +30,67 @@ A1, D2, B3	| H4, G3, H2	| 0, 0, 0
 A1, D2, B3	| D2, B3, A1	| 3, 0, 0 
 
 
-The game finishes once the searcher guesses all three ship locations in a single guess (in any order), such as in the last example above. The object of the game for the searcher is to find the target with the fewest possible guesses.
+The game finishes once the searcher guesses all three ship locations in a single guess (in any order), such as in the last example above. The object of the game for the searcher is to find the target with the fewest 
+possible guesses.
+
+# My approach
+
+My approach to calculate the next guess is as follows:
+
+```haskell
+nextGuess :: ([Location],GameState) -> (Int,Int,Int) -> ([Location],GameState)
+nextGuess (lastGuess, possibleTargets) guessFeedback
+    = (newGuess, next)
+    where
+        consistentTargets = filter (\target -> feedback target lastGuess == guessFeedback) possibleTargets
+        (_, newGuess) = bestGuess consistentTargets consistentTargets
+        next = consistentTargets
+```
+
+1. Given the previous guess (e.g. ["B3", "D4", "H4"]) and the list of all possible remaining targets (stored in gameState)
+2. Remove the targets from the list that would have given the same feedback just given from the previous guess if it was not the correct answer
+
+This trims down the list of all remaining possible targets, as they would have given the same feedback as before - which would have been meaningless. Otherwise, the targets would be all possible combinations of targets (4960 possible, 2480 on average) which would be feasible, but very slow compared to the above.
+
+The next step would be to remove symmetry in the problem space.
+
+```haskell
+-- Counting frequency of unique feedback combinations from a Location to other Locations
+uniqueFeedback :: [Location] -> [[Location]] -> [((Int, Int, Int), Int)]
+uniqueFeedback guess targets = map (\list -> (head list, length list) ) . group . sort $ [feedback target guess | target <- targets]
+
+-- General Formula. Sum of the occurences of 
+-- feedback f squared over total number of tests.
+expectedAvg :: Int -> [((Int, Int, Int), Int)] -> Float
+expectedAvg total feedbacks =
+    sum [((fromIntegral count) ^ 2) / (fromIntegral total) | (_, count) <- feedbacks]
+
+-- Select best guess within minimum average from remaining possible targets
+bestGuess :: [[Location]] -> [[Location]] -> (Float, [Location])
+-- no possible target, make this cost infinity
+bestGuess _ [x] = (1/0, x)
+bestGuess (x:xs) targets
+    | null xs = (expected, x)
+    | expected < expected' = (expected, x)
+    | otherwise = (expected', x')
+    where
+        -- expected number of guesses on average that guess x would take.
+        expected = expectedAvg (length targets) (uniqueFeedback x targets)
+        -- If there is a guess with a better average, then do bestGuess again.
+        -- Worst case is O(n^2).
+        (expected', x') = if null xs then (expected, x) else bestGuess xs targets
+
+```
+
+The next best guess (after trimming down) is choosing the guess with the best probability of being the correct choice, using a formula for each possible guess:
+
+$$
+\sum\limits_{f\in F} \frac{count(f)^2}{T}
+$$
+
+where $F$ is set of all distinct feedbacks, for example ((3,0,0), (1,0,2), and (2,0,1)), $count(f)$ is the number of occurrences of the feedback $f$, and and $T$ is the total number of tests.
+
+This is compared for all remaining targets against all remaining targets. The target with the lowest average number of guesses will be chosen to be the next guess.
 
 # Guess Quality
 
